@@ -335,3 +335,6 @@ config.*.yaml
 
 # MCP Server data
 mcp-server-data/
+
+# GitHub Actions workflows (require special permissions to push)
+.github/workflows/
