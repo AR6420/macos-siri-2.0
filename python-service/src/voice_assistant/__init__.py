@@ -14,6 +14,14 @@ from typing import Any
 # Audio pipeline components (Agent 2)
 from .audio import AudioEvent, AudioEventHandler, AudioPipeline
 
+# Orchestration components (Agent 6)
+from .orchestrator import VoiceAssistant, AssistantStatus
+from .pipeline import VoicePipeline, PipelineResult
+from .state import ConversationState, ConversationTurn
+from .metrics import MetricsCollector, PerformanceTimer
+from .errors import ErrorRecoveryHandler, ErrorType, VoiceAssistantError
+from .tts import MacOSTTS, TTSConfig, create_tts_from_config
+
 # Package-level exports
 __all__ = [
     "__version__",
@@ -23,4 +31,19 @@ __all__ = [
     "AudioEvent",
     "AudioEventHandler",
     "AudioPipeline",
+    # Orchestration components
+    "VoiceAssistant",
+    "AssistantStatus",
+    "VoicePipeline",
+    "PipelineResult",
+    "ConversationState",
+    "ConversationTurn",
+    "MetricsCollector",
+    "PerformanceTimer",
+    "ErrorRecoveryHandler",
+    "ErrorType",
+    "VoiceAssistantError",
+    "MacOSTTS",
+    "TTSConfig",
+    "create_tts_from_config",
 ]
