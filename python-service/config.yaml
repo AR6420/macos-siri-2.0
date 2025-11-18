@@ -1,0 +1,291 @@
+# Voice Assistant Configuration
+# Target: macOS Tahoe 26.1
+# Version: 1.0.0
+
+app:
+  version: "1.0.0"
+  name: "Voice Assistant"
+  log_level: INFO  # DEBUG | INFO | WARNING | ERROR | CRITICAL
+  log_dir: /tmp/voice-assistant/logs
+  data_dir: ~/Library/Application Support/VoiceAssistant
+  enable_crash_reporting: true
+
+# LLM Backend Configuration
+llm:
+  backend: local_gpt_oss  # local_gpt_oss | openai_gpt4 | anthropic_claude | openrouter
+
+  # Local gpt-oss:120b via MLX
+  local_gpt_oss:
+    base_url: http://localhost:8080
+    model: gpt-oss:120b
+    timeout: 120
+    max_tokens: 1024
+    temperature: 0.7
+    top_p: 0.9
+    stream: true
+
+  # OpenAI API Configuration
+  openai:
+    api_key_env: OPENAI_API_KEY
+    model: gpt-4o
+    base_url: https://api.openai.com/v1
+    timeout: 60
+    max_tokens: 1024
+    temperature: 0.7
+    top_p: 0.9
+    stream: true
+
+  # Anthropic Claude API Configuration
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    model: claude-sonnet-4-20250514
+    base_url: https://api.anthropic.com
+    timeout: 60
+    max_tokens: 1024
+    temperature: 0.7
+    top_p: 0.9
+    stream: true
+
+  # OpenRouter Configuration (for any model)
+  openrouter:
+    api_key_env: OPENROUTER_API_KEY
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o
+    timeout: 60
+    max_tokens: 1024
+    temperature: 0.7
+    top_p: 0.9
+    stream: true
+
+  # Retry configuration for API calls
+  retry:
+    max_attempts: 3
+    initial_delay: 1.0
+    max_delay: 10.0
+    exponential_base: 2
+
+# Audio Pipeline Configuration
+audio:
+  # Wake Word Detection (Porcupine)
+  wake_word:
+    enabled: true
+    keyword: "Hey Claude"
+    model_path: ~/.voice-assistant/wake_word.ppn
+    sensitivity: 0.5  # 0.0 (less sensitive) to 1.0 (more sensitive)
+    access_key_env: PORCUPINE_ACCESS_KEY
+
+  # Hotkey Configuration
+  hotkey:
+    enabled: true
+    combination: "Cmd+Shift+Space"
+
+  # Audio Input Settings
+  input:
+    device: default  # "default" or specific device name
+    sample_rate: 16000
+    channels: 1
+    format: int16
+    chunk_size: 512
+
+  # Audio Buffering
+  buffer:
+    duration_seconds: 3  # Pre-wake-word buffer
+    max_duration_seconds: 30  # Maximum recording length
+
+  # Voice Activity Detection (VAD)
+  vad:
+    enabled: true
+    model: silero  # silero | webrtc
+    threshold: 0.5
+    min_speech_duration_ms: 250
+    max_speech_duration_s: 30
+    min_silence_duration_ms: 500
+    speech_pad_ms: 30
+
+# Speech-to-Text Configuration
+stt:
+  engine: whisper_cpp
+
+  # Whisper.cpp settings
+  whisper:
+    model: small.en  # tiny.en | base.en | small.en | medium.en | large
+    model_path: ~/.voice-assistant/whisper.cpp/models
+    binary_path: ~/.voice-assistant/whisper.cpp/build/bin/main
+    language: en
+    threads: 4  # CPU threads to use
+    use_gpu: true  # Use Metal/CoreML acceleration
+
+    # Whisper parameters
+    no_timestamps: false
+    word_timestamps: true
+    max_len: 0  # 0 = no limit
+
+  # Preprocessing
+  preprocessing:
+    normalize_audio: true
+    remove_silence: true
+    vad_filter: true
+
+# Text-to-Speech Configuration
+tts:
+  engine: macos_native
+
+  # macOS Native TTS
+  macos:
+    voice: Samantha  # System voice name
+    rate: 200  # Words per minute (170-210 typical)
+    volume: 0.8  # 0.0 to 1.0
+    pitch: 1.0  # Pitch multiplier
+
+  # Optional: Cloud TTS fallback
+  elevenlabs:
+    enabled: false
+    api_key_env: ELEVENLABS_API_KEY
+    voice_id: default
+    model: eleven_monolingual_v1
+
+# MCP Server Configuration
+mcp:
+  server_path: ~/.voice-assistant/mcp-server
+  host: localhost
+  port: 8765
+
+  # Tool enablement
+  tools_enabled:
+    - execute_applescript
+    - control_application
+    - file_operation
+    - send_message
+    - web_search
+    - get_system_info
+
+  # Tool-specific settings
+  tools:
+    file_operation:
+      allowed_paths:
+        - ~/Documents
+        - ~/Downloads
+        - ~/Desktop
+      blocked_paths:
+        - /System
+        - /Library
+        - ~/.ssh
+
+    send_message:
+      require_confirmation: true
+      allowed_contacts: []  # Empty = all allowed
+
+    web_search:
+      engine: duckduckgo  # duckduckgo | google
+      max_results: 5
+      timeout: 10
+
+    execute_applescript:
+      timeout: 30
+      sandbox: true
+
+# Conversation Management
+conversation:
+  max_history_turns: 10
+  context_window_tokens: 4096
+  enable_context_compression: false
+
+  # System prompt
+  system_prompt: |
+    You are Claude, a helpful AI voice assistant for macOS. You have access to system
+    automation tools and can help users with tasks like opening applications, searching
+    the web, managing files, and sending messages. Always be concise in voice responses.
+    When using tools, explain what you're doing briefly before acting.
+
+  # Context management
+  context:
+    preserve_across_sessions: false
+    session_timeout_minutes: 30
+
+# Performance & Optimization
+performance:
+  # Metrics collection
+  enable_metrics: true
+  metrics_log_interval_seconds: 60
+
+  # Resource limits
+  max_concurrent_requests: 1
+  request_timeout_seconds: 30
+
+  # Caching
+  cache:
+    enabled: true
+    cache_dir: ~/.voice-assistant/cache
+    max_size_mb: 500
+    ttl_seconds: 86400  # 24 hours
+
+# Security & Privacy
+security:
+  # Privacy settings
+  privacy:
+    store_conversations: false
+    store_audio: false
+    telemetry_enabled: false
+
+  # API key storage
+  keychain:
+    service_name: VoiceAssistant
+    use_system_keychain: true
+
+  # Permissions
+  permissions:
+    required:
+      - microphone
+      - accessibility
+    optional:
+      - full_disk_access
+      - automation
+
+# Development & Debugging
+development:
+  debug_mode: false
+  verbose_logging: false
+  save_debug_audio: false
+  debug_audio_path: /tmp/voice-assistant/debug
+
+  # Mock mode for testing
+  mock:
+    enabled: false
+    mock_stt: false
+    mock_llm: false
+    mock_tts: false
+    mock_tools: false
+
+# Notifications
+notifications:
+  enabled: true
+  show_transcription: true
+  show_response: false
+  sound_enabled: true
+  sound_name: default
+
+# Error Handling
+error_handling:
+  # Retry strategies
+  retry_on_failure: true
+  max_retries: 3
+
+  # Fallback behavior
+  fallback:
+    use_cloud_api_on_local_failure: true
+    fallback_backend: anthropic_claude
+
+  # Error messages
+  speak_errors: true
+  error_phrases:
+    stt_error: "Sorry, I didn't catch that. Could you repeat?"
+    llm_error: "I'm having trouble processing that right now."
+    tool_error: "I encountered an error performing that action."
+    network_error: "I'm having trouble connecting. Please check your internet."
+
+# Update Configuration
+updates:
+  check_for_updates: true
+  update_channel: stable  # stable | beta | dev
+  auto_download: false
+  auto_install: false

@@ -1,0 +1,24 @@
+# Speech-to-Text Module Dependencies
+# Agent 3: Whisper Integration
+
+# Core dependencies
+numpy>=1.24.0,<2.0.0
+scipy>=1.11.0
+
+# Optional: For Core ML model conversion (macOS only)
+# Uncomment if you want to convert models to Core ML
+# ane_transformers>=0.1.0
+# openai-whisper>=20230314
+# coremltools>=7.0
+
+# Development dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Type checking
+mypy>=1.5.0
+
+# Code quality
+black>=23.0.0
+ruff>=0.1.0

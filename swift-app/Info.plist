@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.voiceassistant.macos</string>
+
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+
+    <key>CFBundleName</key>
+    <string>Voice Assistant</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+
+    <key>LSUIElement</key>
+    <true/>
+
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2025. All rights reserved.</string>
+
+    <!-- Microphone Permission -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Voice Assistant needs microphone access to listen for wake word detection and process voice commands. All audio processing happens locally on your device.</string>
+
+    <!-- Accessibility Permission -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Voice Assistant needs to send Apple Events to automate applications and perform tasks on your behalf.</string>
+
+    <!-- Full Disk Access (for Messages) -->
+    <key>NSSystemAdministrationUsageDescription</key>
+    <string>Voice Assistant needs access to send messages via the Messages app. This permission is optional.</string>
+
+    <!-- Input Monitoring -->
+    <key>NSInputMonitoringUsageDescription</key>
+    <string>Voice Assistant needs Input Monitoring to detect the activation hotkey (Cmd+Shift+Space).</string>
+
+    <!-- App Sandbox (disabled for system automation) -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+
+    <!-- Network Client (for cloud API access) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Device Audio Input -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+
+    <!-- Automation -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+
+    <!-- High Resolution Capable -->
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <!-- Launch Services -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.productivity</string>
+
+    <!-- Privacy - App Data -->
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+
+    <key>NSSupportsSuddenTermination</key>
+    <false/>
+</dict>
+</plist>
