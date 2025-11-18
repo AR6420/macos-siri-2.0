@@ -13,6 +13,7 @@ import Cocoa
 enum InlineAIStatus {
     case idle
     case monitoring
+    case showingButton
     case showingPanel
     case processing
     case replacing
@@ -40,6 +41,10 @@ class InlineAIController: NSObject {
     weak var delegate: InlineAIControllerDelegate?
 
     private let selectionMonitor = SelectionMonitor.shared
+    private var selectionButton: SelectionButtonWindow?
+    private var enhancedPanel: EnhancedFloatingPanelWindow?
+
+    // Legacy panel (deprecated but kept for compatibility)
     private var floatingPanel: FloatingPanelWindow?
 
     private var currentSelection: TextSelectionEvent?
@@ -51,6 +56,7 @@ class InlineAIController: NSObject {
 
     private var isEnabled = false
     private var showOnHover = true
+    private var useEnhancedUI = true // Toggle for new UI
 
     // MARK: - Initialization
 
@@ -82,8 +88,9 @@ class InlineAIController: NSObject {
         print("InlineAIController: Disabled")
     }
 
-    func configure(showOnHover: Bool) {
+    func configure(showOnHover: Bool, useEnhancedUI: Bool = true) {
         self.showOnHover = showOnHover
+        self.useEnhancedUI = useEnhancedUI
     }
 
     // MARK: - Selection Monitor Setup
@@ -95,13 +102,53 @@ class InlineAIController: NSObject {
     // MARK: - Panel Management
 
     private func showPanel(for selection: TextSelectionEvent) {
-        // Dismiss existing panel
+        // Dismiss any existing UI
         dismissPanel()
+        dismissButton()
 
         // Store current selection
         currentSelection = selection
 
-        // Create floating panel at selection position
+        if useEnhancedUI {
+            // Show selection button (new UI)
+            showButton(for: selection)
+        } else {
+            // Show legacy floating panel
+            showLegacyPanel(for: selection)
+        }
+    }
+
+    private func showButton(for selection: TextSelectionEvent) {
+        let button = SelectionButtonWindow(at: selection.selectionFrame.origin)
+        button.buttonDelegate = self
+        selectionButton = button
+
+        currentStatus = .showingButton
+
+        print("InlineAIController: Showing selection button for text: \(selection.selectedText.prefix(50))...")
+    }
+
+    private func showEnhancedPanel(at position: CGPoint) {
+        guard let selection = currentSelection else { return }
+
+        // Dismiss button
+        dismissButton()
+
+        // Create enhanced panel
+        let panel = EnhancedFloatingPanelWindow(
+            at: position,
+            selectedText: selection.selectedText
+        )
+
+        panel.panelDelegate = self
+        enhancedPanel = panel
+
+        currentStatus = .showingPanel
+
+        print("InlineAIController: Showing enhanced panel")
+    }
+
+    private func showLegacyPanel(for selection: TextSelectionEvent) {
         let panel = FloatingPanelWindow(
             at: selection.selectionFrame.origin,
             selectedText: selection.selectedText
@@ -114,19 +161,50 @@ class InlineAIController: NSObject {
         panel.orderFront(nil)
         currentStatus = .showingPanel
 
-        print("InlineAIController: Showing panel for text: \(selection.selectedText.prefix(50))...")
+        print("InlineAIController: Showing legacy panel for text: \(selection.selectedText.prefix(50))...")
     }
 
     private func dismissPanel() {
         floatingPanel?.dismiss()
         floatingPanel = nil
 
+        enhancedPanel?.dismiss()
+        enhancedPanel = nil
+
         if currentStatus == .showingPanel {
             currentStatus = .monitoring
         }
     }
 
+    private func dismissButton() {
+        selectionButton?.dismiss()
+        selectionButton = nil
+
+        if currentStatus == .showingButton {
+            currentStatus = .monitoring
+        }
+    }
+
     // MARK: - Text Processing
+
+    private func processMenuOption(_ option: MenuOption, customInput: String?) {
+        guard let selection = currentSelection else {
+            print("InlineAIController: No selection available")
+            return
+        }
+
+        currentStatus = .processing
+
+        // Generate command based on option
+        var command = option.generateCommand(for: selection.selectedText, customInput: customInput)
+
+        // Send to Python backend
+        PythonService.shared.sendCommand(command)
+
+        print("InlineAIController: Sent command: \(option.displayName)")
+    }
+
+    // MARK: - Legacy Processing Methods (for backwards compatibility)
 
     private func processRewrite(tone: ToneType) {
         guard let selection = currentSelection else {
@@ -272,7 +350,29 @@ extension InlineAIController: SelectionMonitorDelegate {
     }
 }
 
-// MARK: - Floating Panel Delegate
+// MARK: - Selection Button Delegate
+
+extension InlineAIController: SelectionButtonDelegate {
+
+    func selectionButtonDidClick(at position: CGPoint) {
+        showEnhancedPanel(at: position)
+    }
+}
+
+// MARK: - Enhanced Floating Panel Delegate
+
+extension InlineAIController: EnhancedFloatingPanelDelegate {
+
+    func didSelectOption(_ option: MenuOption, customInput: String?) {
+        processMenuOption(option, customInput: customInput)
+    }
+
+    func didDismissPanel() {
+        dismissPanel()
+    }
+}
+
+// MARK: - Legacy Floating Panel Delegate
 
 extension InlineAIController: FloatingPanelDelegate {
 

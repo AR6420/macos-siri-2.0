@@ -48,60 +48,188 @@ The Inline AI Text Assistant is a powerful feature that enhances text editing ac
 
 ## Features
 
-### 1. Text Rewriting with Tone Adjustment
+### Complete Menu Options Reference
 
-Rewrite selected text in three different tones:
+The enhanced inline AI menu provides **10 powerful actions** organized into 4 sections:
 
-#### Professional Tone
-- Formal, business-appropriate language
-- Polished sentence structure
-- Removes casual expressions
-- Perfect for: Business emails, reports, LinkedIn posts
+#### Section 1: Quick Actions
 
-**Example:**
-```
-Original: "hey can u send me that report asap? thx!"
-Professional: "Could you please send me the report at your earliest convenience? Thank you."
-```
-
-#### Friendly Tone
-- Warm, conversational style
-- Approachable and casual
-- Maintains meaning while being personable
-- Perfect for: Team messages, customer emails, personal correspondence
+**1. Proofread** (✓ checkmark.circle icon)
+- Fixes spelling, grammar, and punctuation errors
+- Preserves original meaning and tone
+- Returns corrected text with changes highlighted
+- **Keyboard:** `P`
 
 **Example:**
 ```
-Original: "As per our previous discussion, the deliverables are due on Friday."
-Friendly: "Hey! Just a quick reminder that we discussed having those deliverables ready by Friday."
+Original: "Teh quick brown fox jumps over the lazy dog"
+Result: "The quick brown fox jumps over the lazy dog"
 ```
 
-#### Concise Tone
-- Removes unnecessary words
-- Gets straight to the point
-- Preserves all key information
-- Perfect for: Summaries, tweets, quick messages
-
-**Example:**
-```
-Original: "I wanted to reach out to you to see if you might be available to attend the meeting."
-Concise: "Are you available for the meeting?"
-```
-
-### 2. Text Summarization
-
-Condense long passages into brief 2-3 sentence summaries:
-
-- Captures main points
-- Retains key information
+**2. Summarize** (📄 list.bullet.rectangle icon)
+- Condenses long text into 2-3 sentences
+- Captures main points and key information
 - Configurable summary length
-- Perfect for: Research, articles, long emails
+- **Keyboard:** `S`
 
 **Example:**
 ```
-Original: [500 word article about AI]
-Summary: "The article discusses recent advances in AI technology, focusing on large language models. It highlights their impact on productivity tools and potential future applications in education and healthcare."
+Original: [500-word article about AI advances]
+Result: "AI has made remarkable progress in healthcare, transportation, and creative fields. However, ethical concerns about privacy and bias require careful consideration. Society must ensure responsible AI development."
 ```
+
+#### Section 2: Rewrite
+
+**3. Friendly** (😊 face.smiling icon)
+- Warm, conversational, approachable tone
+- Perfect for: Team messages, customer support, personal emails
+- **Keyboard:** `F`
+
+**Example:**
+```
+Original: "Per our discussion, deliverables due Friday."
+Friendly: "Hey! Just a heads up - we talked about having those deliverables ready by Friday."
+```
+
+**4. Professional** (💼 briefcase icon)
+- Formal, business-appropriate language
+- Perfect for: Business emails, reports, official communications
+- **Keyboard:** `R` (Rewrite Professional)
+
+**Example:**
+```
+Original: "hey can u send that report asap?"
+Professional: "Could you please send the report at your earliest convenience?"
+```
+
+**5. Concise** (⚡ bolt icon)
+- Removes unnecessary words, gets to the point
+- Perfect for: Summaries, tweets, quick messages
+- **Keyboard:** `C`
+
+**Example:**
+```
+Original: "I wanted to reach out to see if you might be available."
+Concise: "Are you available?"
+```
+
+#### Section 3: Format
+
+**6. Make List** (• list.bullet icon)
+- Converts paragraph or comma-separated items to bullet list
+- Auto-detects items and separators
+- **Keyboard:** `L`
+
+**Example:**
+```
+Original: "Buy milk, eggs, bread, and butter."
+Result:
+• Milk
+• Eggs
+• Bread
+• Butter
+```
+
+**7. Make Numbered List** (🔢 list.number icon)
+- Converts text to numbered list
+- Perfect for: Instructions, steps, ranked items
+- **Keyboard:** `N`
+
+**Example:**
+```
+Original: "First analyze. Then design. Then implement. Finally test."
+Result:
+1. Analyze
+2. Design
+3. Implement
+4. Test
+```
+
+**8. Make Table** (📊 tablecells icon)
+- Converts data to markdown table
+- Auto-detects rows and columns
+- **Keyboard:** `T`
+
+**Example:**
+```
+Original: "Product A costs $10, sold 100 units. Product B costs $20, sold 50 units."
+Result:
+| Product | Price | Units Sold |
+|---------|-------|------------|
+| A       | $10   | 100        |
+| B       | $20   | 50         |
+```
+
+#### Section 4: Compose
+
+**9. Key Points** (🎯 scope icon)
+- Extracts main points as bullet list
+- Perfect for: Meeting notes, articles, documents
+- **Keyboard:** `K`
+
+**Example:**
+```
+Original: "The new dashboard improves UX by reducing load times from 5s to 1s. Requires backend GraphQL migration and frontend React Query update. Estimate: 3 weeks dev, 1 week testing. Expected 25% engagement increase."
+Result:
+• Load time reduced from 5s to 1s
+• Requires backend (GraphQL) and frontend (React Query) changes
+• Timeline: 3 weeks dev + 1 week testing
+• Expected 25% engagement boost
+```
+
+**10. Compose...** (✏️ square.and.pencil icon)
+- Writes new text from your prompt
+- Opens input field for your instructions
+- Perfect for: Emails, messages, creative writing
+- **Keyboard:** `M` (Make/Compose)
+
+**Example:**
+```
+Input: "Write a thank you email to John for yesterday's meeting"
+Result:
+Hi John,
+
+Thank you for taking the time to meet yesterday. I appreciated your insights on the project timeline.
+
+Looking forward to our next discussion.
+
+Best regards
+```
+
+### Preview and Accept/Cancel
+
+All operations show a **preview window** before applying changes:
+
+- **Preview Panel**: Shows original vs. new text side-by-side
+- **Diff Highlighting**: Changes highlighted in orange
+- **Accept** (✓): Apply changes and replace text
+- **Cancel** (✗): Discard and keep original
+- **Keyboard**: `Enter` to accept, `Esc` to cancel
+
+### Input Field (for Compose)
+
+The **Compose** action opens an input field:
+
+1. **Placeholder**: "What would you like me to write?"
+2. **Enter your prompt**: Describe what you want written
+3. **Submit**: Click submit or press `Enter`
+4. **Preview**: Review generated text
+5. **Accept/Cancel**: Apply or discard
+
+**Examples of prompts:**
+- "Write a professional out-of-office message"
+- "Compose a friendly reply accepting the meeting invite"
+- "Draft a brief project status update"
+- "Write a polite decline to the invitation"
+
+### Undo Functionality
+
+Changes can be easily undone:
+
+1. **Automatic Backup**: Original text saved before replacement
+2. **Standard Undo**: Press `Cmd+Z` to restore original
+3. **Clipboard Backup**: Original also copied to clipboard
+4. **Multiple Undo**: Supports undoing multiple operations
 
 ---
 

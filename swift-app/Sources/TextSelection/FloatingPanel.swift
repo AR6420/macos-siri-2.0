@@ -4,6 +4,11 @@
 //
 //  Floating UI panel for inline AI text operations
 //
+//  DEPRECATED: This is the legacy floating panel.
+//  New implementations should use EnhancedFloatingPanel.swift
+//  which provides a more comprehensive and visually appealing UI.
+//  This file is kept for backwards compatibility.
+//
 
 import SwiftUI
 import Cocoa

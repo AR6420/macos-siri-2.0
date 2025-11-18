@@ -305,6 +305,49 @@ inline_ai:
   # Keyboard shortcut (optional, in addition to hover)
   shortcut: "Cmd+Shift+A"  # Keyboard shortcut to trigger inline AI
 
+  # Button appearance
+  button_color: "orange"  # orange | purple | blue
+  button_position: "inline"  # inline | above | below
+
+  # Proofreading settings
+  proofread:
+    enabled: true
+    show_changes: true  # Show detailed list of corrections
+    check_grammar: true
+    check_spelling: true
+    check_punctuation: true
+    check_style: true
+
+  # Rewriting settings
+  rewrite:
+    enabled: true
+    tones:
+      - professional
+      - friendly
+      - concise
+    preserve_meaning: true
+    preserve_facts: true
+
+  # Formatting settings
+  formatting:
+    enabled: true
+    summary_length: 100  # Target words for summary
+    key_points_count: 5  # Default number of key points
+    table_max_columns: 6  # Maximum table columns
+    list_auto_numbering: true  # Auto-detect if list should be numbered
+
+  # Content composition settings
+  compose:
+    enabled: true
+    max_length: 500  # Maximum words in generated content
+    enable_templates: true  # Enable template-based generation
+    templates:
+      - email
+      - message
+      - paragraph
+      - thank_you
+      - apology
+
 # Update Configuration
 updates:
   check_for_updates: true

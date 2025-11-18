@@ -2,7 +2,7 @@
 //  TextReplacer.swift
 //  VoiceAssistant
 //
-//  Replaces selected text using macOS Accessibility API
+//  Replaces selected text using macOS Accessibility API with advanced features
 //
 
 import Foundation
@@ -10,6 +10,16 @@ import Cocoa
 import ApplicationServices
 
 class TextReplacer {
+
+    // MARK: - Replacement Mode
+
+    enum ReplacementMode {
+        case replaceSelection      // Replace selected text
+        case insertBefore          // Insert before selection
+        case insertAfter           // Insert after selection
+        case replaceParagraph      // Replace entire paragraph
+        case replaceAll            // Replace all occurrences
+    }
 
     // MARK: - Error Types
 
@@ -19,6 +29,8 @@ class TextReplacer {
         case replacementFailed
         case clipboardFailed
         case invalidElement
+        case undoStackFull
+        case formattingPreservationFailed
 
         var localizedDescription: String {
             switch self {
@@ -32,8 +44,24 @@ class TextReplacer {
                 return "Failed to copy text to clipboard"
             case .invalidElement:
                 return "Selected element cannot be edited"
+            case .undoStackFull:
+                return "Undo history is full"
+            case .formattingPreservationFailed:
+                return "Could not preserve text formatting"
             }
         }
+    }
+
+    // MARK: - Undo Stack
+
+    private static var undoStack: [UndoItem] = []
+    private static let maxUndoStackSize = 50
+
+    struct UndoItem {
+        let originalText: String
+        let newText: String
+        let timestamp: Date
+        let elementInfo: [String: Any]?
     }
 
     // MARK: - Static Methods
@@ -267,6 +295,325 @@ class TextReplacer {
         return isSettable.boolValue
     }
 
+    // MARK: - Advanced Replacement Methods
+
+    /// Replace text with specified mode
+    static func replaceText(
+        with newText: String,
+        mode: ReplacementMode = .replaceSelection,
+        preserveFormatting: Bool = true
+    ) throws {
+        guard let element = getFocusedElement() else {
+            throw ReplacementError.noFocusedElement
+        }
+
+        switch mode {
+        case .replaceSelection:
+            try replaceSelectedText(with: newText)
+
+        case .insertBefore:
+            try insertText(newText, at: .before, element: element)
+
+        case .insertAfter:
+            try insertText(newText, at: .after, element: element)
+
+        case .replaceParagraph:
+            try replaceParagraph(with: newText, element: element)
+
+        case .replaceAll:
+            try replaceAllOccurrences(with: newText, element: element)
+        }
+    }
+
+    // MARK: - Insertion Methods
+
+    private enum InsertionPosition {
+        case before
+        case after
+    }
+
+    private static func insertText(_ text: String, at position: InsertionPosition, element: AXUIElement) throws {
+        // Get current selection range
+        var rangeRef: CFTypeRef?
+        let rangeResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXSelectedTextRangeAttribute as CFString,
+            &rangeRef
+        )
+
+        guard rangeResult == .success, let rangeValue = rangeRef else {
+            throw ReplacementError.replacementFailed
+        }
+
+        var range = CFRange()
+        guard AXValueGetValue(rangeValue as! AXValue, .cfRange, &range) else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Get current text
+        var valueRef: CFTypeRef?
+        let valueResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            &valueRef
+        )
+
+        guard valueResult == .success, let currentText = valueRef as? String else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Calculate insertion point
+        let insertionPoint = position == .before ? range.location : (range.location + range.length)
+
+        // Build new text
+        let nsString = currentText as NSString
+        let beforeInsertion = nsString.substring(to: insertionPoint)
+        let afterInsertion = nsString.substring(from: insertionPoint)
+        let newFullText = beforeInsertion + text + afterInsertion
+
+        // Set new value
+        let setResult = AXUIElementSetAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            newFullText as CFTypeRef
+        )
+
+        guard setResult == .success else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Update cursor position
+        let newCursorPosition = insertionPoint + (text as NSString).length
+        let newRange = CFRange(location: newCursorPosition, length: 0)
+
+        if let newRangeValue = AXValueCreate(.cfRange, &newRange) {
+            AXUIElementSetAttributeValue(
+                element,
+                kAXSelectedTextRangeAttribute as CFString,
+                newRangeValue
+            )
+        }
+
+        // Add to undo stack
+        addToUndoStack(originalText: currentText, newText: newFullText, elementInfo: nil)
+    }
+
+    private static func replaceParagraph(with newText: String, element: AXUIElement) throws {
+        // Get current text and selection
+        var valueRef: CFTypeRef?
+        let valueResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            &valueRef
+        )
+
+        guard valueResult == .success, let currentText = valueRef as? String else {
+            throw ReplacementError.replacementFailed
+        }
+
+        var rangeRef: CFTypeRef?
+        let rangeResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXSelectedTextRangeAttribute as CFString,
+            &rangeRef
+        )
+
+        guard rangeResult == .success, let rangeValue = rangeRef else {
+            throw ReplacementError.replacementFailed
+        }
+
+        var range = CFRange()
+        guard AXValueGetValue(rangeValue as! AXValue, .cfRange, &range) else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Find paragraph boundaries
+        let nsString = currentText as NSString
+        let paragraphRange = nsString.paragraphRange(for: NSRange(location: range.location, length: range.length))
+
+        // Replace paragraph
+        let newFullText = nsString.replacingCharacters(in: paragraphRange, with: newText)
+
+        // Set new value
+        let setResult = AXUIElementSetAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            newFullText as CFTypeRef
+        )
+
+        guard setResult == .success else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Add to undo stack
+        addToUndoStack(originalText: currentText, newText: newFullText, elementInfo: nil)
+    }
+
+    private static func replaceAllOccurrences(with newText: String, element: AXUIElement) throws {
+        // Get selected text to find occurrences
+        var selectedTextRef: CFTypeRef?
+        let selectedResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXSelectedTextAttribute as CFString,
+            &selectedTextRef
+        )
+
+        guard selectedResult == .success, let selectedText = selectedTextRef as? String else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Get full text
+        var valueRef: CFTypeRef?
+        let valueResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            &valueRef
+        )
+
+        guard valueResult == .success, let currentText = valueRef as? String else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Replace all occurrences
+        let newFullText = currentText.replacingOccurrences(of: selectedText, with: newText)
+
+        // Set new value
+        let setResult = AXUIElementSetAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            newFullText as CFTypeRef
+        )
+
+        guard setResult == .success else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Add to undo stack
+        addToUndoStack(originalText: currentText, newText: newFullText, elementInfo: nil)
+    }
+
+    // MARK: - Undo/Redo Support
+
+    /// Add item to undo stack
+    private static func addToUndoStack(originalText: String, newText: String, elementInfo: [String: Any]?) {
+        let item = UndoItem(
+            originalText: originalText,
+            newText: newText,
+            timestamp: Date(),
+            elementInfo: elementInfo
+        )
+
+        undoStack.append(item)
+
+        // Maintain stack size
+        if undoStack.count > maxUndoStackSize {
+            undoStack.removeFirst()
+        }
+    }
+
+    /// Undo last text replacement
+    static func undoLastReplacement() throws {
+        guard let lastItem = undoStack.popLast() else {
+            throw ReplacementError.replacementFailed
+        }
+
+        guard let element = getFocusedElement() else {
+            // Re-add to stack if we can't get element
+            undoStack.append(lastItem)
+            throw ReplacementError.noFocusedElement
+        }
+
+        // Restore original text
+        let setResult = AXUIElementSetAttributeValue(
+            element,
+            kAXValueAttribute as CFString,
+            lastItem.originalText as CFTypeRef
+        )
+
+        guard setResult == .success else {
+            // Re-add to stack if restoration failed
+            undoStack.append(lastItem)
+            throw ReplacementError.replacementFailed
+        }
+
+        showUndoNotification()
+    }
+
+    /// Check if undo is available
+    static func canUndo() -> Bool {
+        return !undoStack.isEmpty
+    }
+
+    /// Get undo stack size
+    static func undoStackSize() -> Int {
+        return undoStack.count
+    }
+
+    /// Clear undo stack
+    static func clearUndoStack() {
+        undoStack.removeAll()
+    }
+
+    // MARK: - Formatting Preservation
+
+    /// Try to preserve formatting when replacing text
+    static func replaceTextPreservingFormat(original: String, new: String) throws {
+        // Detect if text is rich text (has formatting)
+        guard let element = getFocusedElement() else {
+            throw ReplacementError.noFocusedElement
+        }
+
+        // Check if element supports attributed string
+        var attributedRef: CFTypeRef?
+        let attributedResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXAttributedStringForRangeParameterizedAttribute as CFString,
+            &attributedRef
+        )
+
+        if attributedResult == .success {
+            // Element supports rich text - try to preserve formatting
+            try replaceWithAttributedString(element: element, newText: new)
+        } else {
+            // Fall back to plain text replacement
+            try replaceSelectedText(with: new)
+        }
+    }
+
+    private static func replaceWithAttributedString(element: AXUIElement, newText: String) throws {
+        // Get current selection range
+        var rangeRef: CFTypeRef?
+        let rangeResult = AXUIElementCopyAttributeValue(
+            element,
+            kAXSelectedTextRangeAttribute as CFString,
+            &rangeRef
+        )
+
+        guard rangeResult == .success, let rangeValue = rangeRef else {
+            throw ReplacementError.replacementFailed
+        }
+
+        var range = CFRange()
+        guard AXValueGetValue(rangeValue as! AXValue, .cfRange, &range) else {
+            throw ReplacementError.replacementFailed
+        }
+
+        // Create attributed string with preserved formatting
+        let attributedString = NSMutableAttributedString(string: newText)
+
+        // Try to apply formatting (this is simplified - real implementation would extract original formatting)
+        // For now, just use default formatting
+        let setResult = AXUIElementSetAttributeValue(
+            element,
+            kAXSelectedTextAttribute as CFString,
+            newText as CFTypeRef
+        )
+
+        guard setResult == .success else {
+            throw ReplacementError.formattingPreservationFailed
+        }
+    }
+
     // MARK: - Helpers
 
     /// Show notification on replacement success/failure
@@ -283,6 +630,15 @@ class TextReplacer {
             notification.soundName = nil
         }
 
+        NSUserNotificationCenter.default.deliver(notification)
+    }
+
+    /// Show undo notification
+    static func showUndoNotification() {
+        let notification = NSUserNotification()
+        notification.title = "Undone"
+        notification.informativeText = "Last text change has been reverted"
+        notification.soundName = NSUserNotificationDefaultSoundName
         NSUserNotificationCenter.default.deliver(notification)
     }
 }

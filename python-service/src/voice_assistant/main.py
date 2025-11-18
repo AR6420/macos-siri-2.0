@@ -151,8 +151,13 @@ async def handle_stdin_commands(assistant) -> None:
     - {"command": "clear_conversation"} - Clear conversation history
     - {"command": "get_status"} - Get current status
     - {"command": "get_metrics"} - Get performance metrics
-    - {"command": "rewrite_text", "text": "...", "tone": "professional"} - Rewrite text with tone
-    - {"command": "summarize_text", "text": "..."} - Summarize text
+
+    Inline AI Commands:
+    - {"command": "rewrite_text", "text": "...", "tone": "professional|friendly|concise"} - Rewrite text with tone
+    - {"command": "summarize_text", "text": "...", "max_sentences": 3} - Summarize text
+    - {"command": "proofread_text", "text": "...", "show_changes": true} - Proofread and correct text
+    - {"command": "format_text", "text": "...", "format": "summary|key_points|list|table"} - Format text
+    - {"command": "compose_text", "prompt": "...", "context": "..."} - Generate new content
 
     Args:
         assistant: VoiceAssistant instance
@@ -163,7 +168,15 @@ async def handle_stdin_commands(assistant) -> None:
     logger.info("Stdin command handler started")
 
     # Initialize inline AI components
-    from .inline_ai import TextRewriter, TextSummarizer, ToneType
+    from .inline_ai import (
+        TextRewriter,
+        TextSummarizer,
+        TextProofreader,
+        TextFormatter,
+        ContentComposer,
+        ToneType,
+        FormatType
+    )
     from .llm.factory import ProviderFactory
 
     # Get configuration
@@ -173,11 +186,14 @@ async def handle_stdin_commands(assistant) -> None:
     # Create LLM provider for inline AI (shared with main assistant)
     llm_provider = ProviderFactory.create_from_config(config)
 
-    # Initialize rewriter and summarizer
+    # Initialize all inline AI components
     rewriter = TextRewriter(llm_provider, inline_ai_config)
     summarizer = TextSummarizer(llm_provider, inline_ai_config)
+    proofreader = TextProofreader(llm_provider, inline_ai_config)
+    formatter = TextFormatter(llm_provider, inline_ai_config)
+    composer = ContentComposer(llm_provider, inline_ai_config)
 
-    logger.info("Inline AI components initialized")
+    logger.info("Inline AI components initialized (rewriter, summarizer, proofreader, formatter, composer)")
 
     loop = asyncio.get_event_loop()
 
@@ -318,6 +334,160 @@ async def handle_stdin_commands(assistant) -> None:
 
                 except Exception as e:
                     logger.exception(f"Error during summarization: {e}")
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": str(e)
+                    }), flush=True)
+
+            elif command == "proofread_text":
+                # Proofread text
+                text = command_data.get("text", "")
+                show_changes = command_data.get("show_changes", True)
+
+                if not text:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": "No text provided for proofreading"
+                    }), flush=True)
+                    continue
+
+                try:
+                    # Perform proofreading
+                    result = await proofreader.proofread(text, show_changes=show_changes)
+
+                    if result.success:
+                        # Convert TextChange objects to dictionaries
+                        changes_list = [
+                            {
+                                "type": change.type,
+                                "original": change.original,
+                                "corrected": change.corrected,
+                                "description": change.description,
+                                "position": change.position
+                            }
+                            for change in result.changes
+                        ]
+
+                        print(json.dumps({
+                            "type": "proofread_complete",
+                            "original": result.original_text,
+                            "proofread": result.proofread_text,
+                            "changes": changes_list,
+                            "has_changes": result.has_changes,
+                            "num_changes": result.num_changes,
+                            "tokens_used": result.tokens_used,
+                            "processing_time_ms": result.processing_time_ms
+                        }), flush=True)
+                    else:
+                        print(json.dumps({
+                            "type": "inline_ai_error",
+                            "error": result.error or "Proofreading failed"
+                        }), flush=True)
+
+                except Exception as e:
+                    logger.exception(f"Error during proofreading: {e}")
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": str(e)
+                    }), flush=True)
+
+            elif command == "format_text":
+                # Format text in various ways
+                text = command_data.get("text", "")
+                format_type_str = command_data.get("format", "summary")
+
+                if not text:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": "No text provided for formatting"
+                    }), flush=True)
+                    continue
+
+                try:
+                    # Convert format string to FormatType
+                    format_type = FormatType(format_type_str.lower())
+
+                    # Get format-specific parameters
+                    kwargs = {}
+                    if format_type == FormatType.SUMMARY:
+                        kwargs["max_sentences"] = command_data.get("max_sentences", 3)
+                    elif format_type == FormatType.KEY_POINTS:
+                        kwargs["num_points"] = command_data.get("num_points")
+
+                    # Perform formatting
+                    result = await formatter.format_text(text, format_type, **kwargs)
+
+                    if result.success:
+                        print(json.dumps({
+                            "type": "format_complete",
+                            "original": result.original_text,
+                            "formatted": result.formatted_text,
+                            "format_type": format_type.value,
+                            "tokens_used": result.tokens_used,
+                            "processing_time_ms": result.processing_time_ms,
+                            "metadata": result.metadata or {}
+                        }), flush=True)
+                    else:
+                        print(json.dumps({
+                            "type": "inline_ai_error",
+                            "error": result.error or "Formatting failed"
+                        }), flush=True)
+
+                except ValueError:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": f"Invalid format type: {format_type_str}. Use summary, key_points, list, or table."
+                    }), flush=True)
+                except Exception as e:
+                    logger.exception(f"Error during formatting: {e}")
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": str(e)
+                    }), flush=True)
+
+            elif command == "compose_text":
+                # Compose new content from prompt
+                prompt = command_data.get("prompt", "")
+                context = command_data.get("context")
+                max_length = command_data.get("max_length")
+                temperature = command_data.get("temperature")
+
+                if not prompt:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": "No prompt provided for composition"
+                    }), flush=True)
+                    continue
+
+                try:
+                    # Perform composition
+                    result = await composer.compose(
+                        prompt=prompt,
+                        context=context,
+                        max_length=max_length,
+                        temperature=temperature
+                    )
+
+                    if result.success:
+                        print(json.dumps({
+                            "type": "compose_complete",
+                            "prompt": result.prompt,
+                            "context": result.context,
+                            "content": result.composed_text,
+                            "word_count": result.word_count,
+                            "char_count": result.char_count,
+                            "tokens_used": result.tokens_used,
+                            "processing_time_ms": result.processing_time_ms,
+                            "metadata": result.metadata or {}
+                        }), flush=True)
+                    else:
+                        print(json.dumps({
+                            "type": "inline_ai_error",
+                            "error": result.error or "Composition failed"
+                        }), flush=True)
+
+                except Exception as e:
+                    logger.exception(f"Error during composition: {e}")
                     print(json.dumps({
                         "type": "inline_ai_error",
                         "error": str(e)
