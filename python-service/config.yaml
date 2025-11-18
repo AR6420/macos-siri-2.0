@@ -11,8 +11,10 @@ app:
   enable_crash_reporting: true
 
 # LLM Backend Configuration
+# Default: Claude Haiku 4.5 (fast, affordable, accurate)
+# For wider audience reach with excellent performance/cost ratio
 llm:
-  backend: local_gpt_oss  # local_gpt_oss | openai_gpt4 | anthropic_claude | openrouter
+  backend: anthropic_claude  # anthropic_claude | local_gpt_oss | openai_gpt4 | openrouter
 
   # Local gpt-oss:120b via MLX
   local_gpt_oss:
@@ -36,12 +38,14 @@ llm:
     stream: true
 
   # Anthropic Claude API Configuration
+  # Using Claude Haiku 4.5 as default - Fast, affordable, excellent for text operations
+  # Alternatives: claude-sonnet-4-20250514, claude-opus-4-20250514
   anthropic:
-    api_key_env: ANTHROPIC_API_KEY
-    model: claude-sonnet-4-20250514
+    api_key_env: ANTHROPIC_API_KEY  # Set via: export ANTHROPIC_API_KEY="your-key"
+    model: claude-haiku-4-20250122  # Claude Haiku 4.5 (recommended for inline AI)
     base_url: https://api.anthropic.com
     timeout: 60
-    max_tokens: 1024
+    max_tokens: 2048  # Increased for longer responses
     temperature: 0.7
     top_p: 0.9
     stream: true

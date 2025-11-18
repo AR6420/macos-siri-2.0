@@ -11,11 +11,13 @@
 
 - **Privacy-First**: All voice processing happens on-device by default
 - **Wake Word Activation**: Say "Hey Claude" or use hotkey (Cmd+Shift+Space)
-- **Local AI**: Runs gpt-oss:120b locally on Apple Silicon using MLX
-- **Cloud Flexibility**: Switch between local, OpenAI, Anthropic, or OpenRouter
+- **Claude Haiku 4.5**: Fast, affordable AI (default) with optional local/cloud alternatives
+- **Inline AI Assistant**: Select text anywhere → Rewrite, proofread, summarize, format
+- **10 AI Operations**: Proofread, rewrite (3 tones), summarize, key points, list, table, compose
 - **macOS Automation**: Control applications, manage files, send messages, search the web
 - **Fast & Accurate**: Whisper.cpp with Core ML acceleration for speech recognition
 - **Native Integration**: Beautiful menu bar app with native macOS UI
+- **Cross-App Support**: Works in Mail, Messages, TextEdit, Safari, and 15+ apps
 
 ## Demo
 
@@ -58,26 +60,32 @@ When you first launch Voice Assistant, you'll be prompted to grant permissions:
 
 Open Preferences from the menu bar icon and choose your backend:
 
-#### Option A: Local (gpt-oss:120b)
+#### Option A: Claude Haiku 4.5 (Default - Recommended ⭐)
+- **Get API key** from [console.anthropic.com](https://console.anthropic.com)
+- **Enter key** in Preferences → AI Backend → Anthropic
+- **Model**: Claude Haiku 4.5 (pre-selected)
+- **Best for**: General use, inline AI, all features
+- **Performance**: Fast (0.8-1.5s), Affordable ($0.0003/operation)
+- **Why recommended**: Excellent quality-to-cost ratio, perfect for text operations
+
+See [CLAUDE_API_SETUP.md](docs/CLAUDE_API_SETUP.md) for detailed setup instructions.
+
+#### Option B: Local (gpt-oss:120b)
 - Download and install [MLX](https://github.com/ml-explore/mlx)
 - Start local server: `mlx-lm.server --model gpt-oss:120b --port 8080`
 - No API key required
-- Best for privacy
-
-#### Option B: Claude (Anthropic)
-- Get API key from [console.anthropic.com](https://console.anthropic.com)
-- Enter key in Preferences → LLM Backend → Anthropic
-- Select model: Claude Sonnet 4
+- Best for maximum privacy (but slower, requires powerful Mac)
 
 #### Option C: OpenAI
 - Get API key from [platform.openai.com](https://platform.openai.com)
-- Enter key in Preferences → LLM Backend → OpenAI
+- Enter key in Preferences → AI Backend → OpenAI
 - Select model: GPT-4o
+- Good alternative to Claude
 
 #### Option D: OpenRouter
 - Get API key from [openrouter.ai](https://openrouter.ai)
-- Access any model through unified API
-- Configure in Preferences → LLM Backend → OpenRouter
+- Access 100+ models through unified API
+- Best for experimentation
 
 ### 3. Start Using
 
