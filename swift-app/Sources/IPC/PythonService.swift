@@ -245,6 +245,32 @@ class PythonService: NSObject, VoiceAssistantServiceProtocol {
                     self?.delegate?.didEncounterError(errorMessage)
                 }
 
+            case "rewrite_complete":
+                // Handle inline AI rewrite completion
+                if let original = json["original"] as? String,
+                   let rewritten = json["rewritten"] as? String {
+                    InlineAIController.shared.handleRewriteComplete(
+                        original: original,
+                        rewritten: rewritten
+                    )
+                }
+
+            case "summarize_complete":
+                // Handle inline AI summarize completion
+                if let original = json["original"] as? String,
+                   let summary = json["summary"] as? String {
+                    InlineAIController.shared.handleSummarizeComplete(
+                        original: original,
+                        summary: summary
+                    )
+                }
+
+            case "inline_ai_error":
+                // Handle inline AI error
+                if let errorMessage = json["error"] as? String {
+                    InlineAIController.shared.handleInlineAIError(error: errorMessage)
+                }
+
             default:
                 print("Unknown message type: \(type)")
             }

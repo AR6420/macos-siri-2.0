@@ -283,6 +283,28 @@ error_handling:
     tool_error: "I encountered an error performing that action."
     network_error: "I'm having trouble connecting. Please check your internet."
 
+# Inline AI Configuration
+inline_ai:
+  enabled: true
+
+  # Default tone for rewriting
+  default_tone: professional  # professional | friendly | concise
+
+  # Text length limits
+  max_input_length: 5000  # Maximum characters for input text
+  summary_max_length: 100  # Target summary length
+
+  # LLM parameters for inline AI
+  max_tokens: 512
+  temperature: 0.7
+
+  # UI settings
+  show_on_hover: true
+  auto_dismiss_seconds: 10
+
+  # Keyboard shortcut (optional, in addition to hover)
+  shortcut: "Cmd+Shift+A"  # Keyboard shortcut to trigger inline AI
+
 # Update Configuration
 updates:
   check_for_updates: true

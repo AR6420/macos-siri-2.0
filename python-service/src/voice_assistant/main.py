@@ -151,6 +151,8 @@ async def handle_stdin_commands(assistant) -> None:
     - {"command": "clear_conversation"} - Clear conversation history
     - {"command": "get_status"} - Get current status
     - {"command": "get_metrics"} - Get performance metrics
+    - {"command": "rewrite_text", "text": "...", "tone": "professional"} - Rewrite text with tone
+    - {"command": "summarize_text", "text": "..."} - Summarize text
 
     Args:
         assistant: VoiceAssistant instance
@@ -159,6 +161,23 @@ async def handle_stdin_commands(assistant) -> None:
     import sys
 
     logger.info("Stdin command handler started")
+
+    # Initialize inline AI components
+    from .inline_ai import TextRewriter, TextSummarizer, ToneType
+    from .llm.factory import ProviderFactory
+
+    # Get configuration
+    config = load_config()
+    inline_ai_config = config.get("inline_ai", {})
+
+    # Create LLM provider for inline AI (shared with main assistant)
+    llm_provider = ProviderFactory.create_from_config(config)
+
+    # Initialize rewriter and summarizer
+    rewriter = TextRewriter(llm_provider, inline_ai_config)
+    summarizer = TextSummarizer(llm_provider, inline_ai_config)
+
+    logger.info("Inline AI components initialized")
 
     loop = asyncio.get_event_loop()
 
@@ -219,6 +238,90 @@ async def handle_stdin_commands(assistant) -> None:
             elif command == "get_metrics":
                 metrics = assistant.get_metrics()
                 print(json.dumps({"response": "metrics", "data": metrics}), flush=True)
+
+            elif command == "rewrite_text":
+                # Rewrite text with specified tone
+                text = command_data.get("text", "")
+                tone_str = command_data.get("tone", "professional")
+
+                if not text:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": "No text provided for rewriting"
+                    }), flush=True)
+                    continue
+
+                try:
+                    # Convert tone string to ToneType
+                    tone = ToneType(tone_str.lower())
+
+                    # Perform rewrite
+                    result = await rewriter.rewrite(text, tone)
+
+                    if result.success:
+                        print(json.dumps({
+                            "type": "rewrite_complete",
+                            "original": result.original_text,
+                            "rewritten": result.rewritten_text,
+                            "tone": tone.value,
+                            "tokens_used": result.tokens_used,
+                            "processing_time_ms": result.processing_time_ms
+                        }), flush=True)
+                    else:
+                        print(json.dumps({
+                            "type": "inline_ai_error",
+                            "error": result.error or "Rewrite failed"
+                        }), flush=True)
+
+                except ValueError:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": f"Invalid tone: {tone_str}. Use professional, friendly, or concise."
+                    }), flush=True)
+                except Exception as e:
+                    logger.exception(f"Error during rewrite: {e}")
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": str(e)
+                    }), flush=True)
+
+            elif command == "summarize_text":
+                # Summarize text
+                text = command_data.get("text", "")
+                max_sentences = command_data.get("max_sentences", 3)
+
+                if not text:
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": "No text provided for summarization"
+                    }), flush=True)
+                    continue
+
+                try:
+                    # Perform summarization
+                    result = await summarizer.summarize(text, max_sentences=max_sentences)
+
+                    if result.success:
+                        print(json.dumps({
+                            "type": "summarize_complete",
+                            "original": result.original_text,
+                            "summary": result.summary,
+                            "tokens_used": result.tokens_used,
+                            "processing_time_ms": result.processing_time_ms,
+                            "compression_ratio": result.compression_ratio
+                        }), flush=True)
+                    else:
+                        print(json.dumps({
+                            "type": "inline_ai_error",
+                            "error": result.error or "Summarization failed"
+                        }), flush=True)
+
+                except Exception as e:
+                    logger.exception(f"Error during summarization: {e}")
+                    print(json.dumps({
+                        "type": "inline_ai_error",
+                        "error": str(e)
+                    }), flush=True)
 
             else:
                 logger.warning(f"Unknown command: {command}")
