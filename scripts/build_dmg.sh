@@ -127,6 +127,7 @@ echo "  Building for Release..."
 xcodebuild \
     -scheme VoiceAssistant \
     -configuration Release \
+    -destination "platform=macOS,arch=arm64" \
     -derivedDataPath build \
     CODE_SIGN_IDENTITY="" \
     CODE_SIGNING_REQUIRED=NO \
