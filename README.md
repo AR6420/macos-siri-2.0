@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-Tahoe%2026.1-brightgreen.svg)]()
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)]()
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
 [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)]()
 
 ## Features
@@ -62,7 +62,7 @@ See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed build instructions.
 - **macOS**: Tahoe 26.1 (macOS 26.1) or later
 - **Hardware**: Apple Silicon Mac (M1 or later recommended)
 - **RAM**: 8GB minimum, 64GB+ recommended for local LLM
-- **Python**: 3.9 or later
+- **Python**: 3.10 or later
 - **Xcode**: Command Line Tools (for building from source)
 
 ## Quick Start
