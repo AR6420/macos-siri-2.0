@@ -23,7 +23,6 @@ class EnhancedFloatingPanelWindow: NSPanel {
     // MARK: - Properties
 
     weak var panelDelegate: EnhancedFloatingPanelDelegate?
-    private var contentViewController: EnhancedFloatingPanelViewController?
     private var autoDismissTimer: Timer?
 
     private let panelWidth: CGFloat = 320
@@ -79,8 +78,8 @@ class EnhancedFloatingPanelWindow: NSPanel {
             }
         )
 
-        contentViewController = EnhancedFloatingPanelViewController(rootView: contentView)
-        self.contentViewController = contentViewController
+        let hostingController = EnhancedFloatingPanelViewController(rootView: contentView)
+        self.contentViewController = hostingController
 
         // Animate in
         animateIn()

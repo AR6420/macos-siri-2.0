@@ -32,6 +32,7 @@ protocol VoiceAssistantDelegate: AnyObject {
 
 // MARK: - Python Service
 
+@MainActor
 class PythonService: NSObject, VoiceAssistantServiceProtocol {
 
     // MARK: - Singleton

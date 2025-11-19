@@ -78,6 +78,15 @@ struct DiffSegment: Identifiable {
     }
 }
 
+// MARK: - Diff Line (for Unified View)
+
+struct DiffLine: Identifiable {
+    let id = UUID()
+    let content: String
+    let type: DiffChangeType
+    let lineNumber: Int?
+}
+
 // MARK: - Diff View
 
 struct DiffView: View {
@@ -229,13 +238,6 @@ struct UnifiedDiffView: View {
     let showLineNumbers: Bool
 
     @State private var diffLines: [DiffLine] = []
-
-    struct DiffLine: Identifiable {
-        let id = UUID()
-        let content: String
-        let type: DiffChangeType
-        let lineNumber: Int?
-    }
 
     var body: some View {
         ScrollView {

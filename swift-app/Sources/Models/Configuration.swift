@@ -30,6 +30,7 @@ enum LLMBackend: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+@MainActor
 class Configuration: ObservableObject {
 
     // MARK: - Singleton

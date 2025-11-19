@@ -56,7 +56,6 @@ protocol FloatingPanelDelegate: AnyObject {
 class FloatingPanelWindow: NSPanel {
 
     weak var panelDelegate: FloatingPanelDelegate?
-    private var contentViewController: FloatingPanelViewController?
 
     init(at position: CGPoint, selectedText: String) {
         // Calculate window size
@@ -93,8 +92,8 @@ class FloatingPanelWindow: NSPanel {
         }
 
         // Create hosting controller
-        contentViewController = FloatingPanelViewController(rootView: contentView)
-        self.contentViewController = contentViewController
+        let hostingController = FloatingPanelViewController(rootView: contentView)
+        self.contentViewController = hostingController
 
         // Auto-dismiss after delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
@@ -119,8 +118,8 @@ class FloatingPanelWindow: NSPanel {
 
     func dismiss() {
         panelDelegate?.didDismissPanel()
-        self.orderOut(nil)
         self.contentViewController = nil
+        self.orderOut(nil)
     }
 
     override func resignKey() {

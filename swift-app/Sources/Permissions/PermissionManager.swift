@@ -49,6 +49,7 @@ enum PermissionStatus {
     case restricted
 }
 
+@MainActor
 class PermissionManager: ObservableObject {
 
     // MARK: - Singleton
@@ -103,14 +104,14 @@ class PermissionManager: ObservableObject {
 
     // MARK: - Accessibility Permission
 
-    func checkAccessibilityPermission() -> PermissionStatus {
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: false]
+    nonisolated func checkAccessibilityPermission() -> PermissionStatus {
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false]
         let accessEnabled = AXIsProcessTrustedWithOptions(options)
         return accessEnabled ? .authorized : .denied
     }
 
-    func requestAccessibilityPermission() {
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
+    nonisolated func requestAccessibilityPermission() {
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
         _ = AXIsProcessTrustedWithOptions(options)
 
         // Open System Preferences to Privacy & Security > Accessibility
