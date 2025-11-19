@@ -23,6 +23,25 @@
 
 [Screenshot placeholder - menu bar icon and preferences window]
 
+## ⚡ Quick Start
+
+**Get started in 3 commands:**
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/AR6420/macos-siri-2.0.git
+cd macos-siri-2.0
+
+# 2. Run the installer (installs everything)
+./install.sh
+
+# 3. Set your API key and run
+export ANTHROPIC_API_KEY="your-key-here"
+./run.sh
+```
+
+**That's it!** See [QUICKSTART.md](QUICKSTART.md) for detailed quick start guide.
+
 ## Installation
 
 ### Quick Install (Recommended)
