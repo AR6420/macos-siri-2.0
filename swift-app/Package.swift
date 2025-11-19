@@ -21,10 +21,7 @@ let package = Package(
         .executableTarget(
             name: "VoiceAssistant",
             dependencies: [],
-            path: "Sources",
-            resources: [
-                .process("Resources")
-            ]
+            path: "Sources"
         ),
         .testTarget(
             name: "VoiceAssistantTests",
