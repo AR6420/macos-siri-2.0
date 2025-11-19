@@ -21,7 +21,10 @@ let package = Package(
         .executableTarget(
             name: "VoiceAssistant",
             dependencies: [],
-            path: "Sources"
+            path: "Sources",
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ]
         ),
         .testTarget(
             name: "VoiceAssistantTests",
