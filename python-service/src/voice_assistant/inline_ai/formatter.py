@@ -8,6 +8,8 @@ Provides functionality to format text in different ways:
 - Table: Structure data as markdown tables
 """
 
+from __future__ import annotations
+
 import asyncio
 import time
 from typing import Dict, Any, List

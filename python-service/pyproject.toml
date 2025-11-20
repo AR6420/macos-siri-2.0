@@ -60,7 +60,7 @@ pydantic = "^2.0.0"
 python-dotenv = "^1.0.0"
 
 # Async & Concurrency
-asyncio = "^3.4.3"
+# asyncio is part of Python stdlib since 3.4, not needed as dependency
 aiofiles = "^23.0.0"
 
 # Retry & Error Handling
@@ -110,8 +110,9 @@ sphinx-rtd-theme = "^2.0.0"
 
 [tool.poetry.scripts]
 voice-assistant = "voice_assistant.main:main"
-voice-assistant-setup = "voice_assistant.setup:setup"
-voice-assistant-test = "voice_assistant.test_utils:test_audio"
+# Removed non-existent entry points that would cause runtime errors:
+# voice-assistant-setup = "voice_assistant.setup:setup"
+# voice-assistant-test = "voice_assistant.test_utils:test_audio"
 
 [tool.poetry.extras]
 elevenlabs = ["elevenlabs"]
@@ -124,7 +125,7 @@ build-backend = "poetry.core.masonry.api"
 # Black Configuration
 [tool.black]
 line-length = 100
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py310', 'py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -176,7 +177,7 @@ asyncio_mode = "auto"
 
 # MyPy Configuration
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -199,7 +200,7 @@ ignore_missing_imports = true
 # Ruff Configuration
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings

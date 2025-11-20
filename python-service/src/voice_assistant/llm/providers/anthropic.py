@@ -4,6 +4,8 @@ Anthropic provider for Claude Sonnet, Opus, and other Claude models.
 This provider uses the official Anthropic API for cloud-based inference.
 """
 
+from __future__ import annotations
+
 import os
 import json
 from typing import List, Optional, Dict, Any, AsyncIterator

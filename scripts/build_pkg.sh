@@ -3,6 +3,8 @@
 # Creates a proper installer package with pre/post-install scripts
 
 set -e  # Exit on error
+set -u  # Exit on undefined variable
+set -o pipefail  # Exit on pipe failure
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -10,7 +12,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Configuration
 APP_NAME="Voice Assistant"
 BUNDLE_NAME="VoiceAssistant"
-IDENTIFIER="com.voiceassistant.app"
+IDENTIFIER="com.voiceassistant.macos"
 VERSION=$(grep "version" "$PROJECT_ROOT/python-service/pyproject.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 PKG_NAME="${BUNDLE_NAME}-${VERSION}.pkg"
 

@@ -4,6 +4,8 @@ Text summarization module.
 Provides functionality to summarize selected text using the configured LLM provider.
 """
 
+from __future__ import annotations
+
 import asyncio
 import time
 from typing import Dict, Any

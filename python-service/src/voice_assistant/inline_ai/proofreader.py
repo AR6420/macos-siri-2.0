@@ -5,6 +5,8 @@ Provides functionality to proofread and correct text using the configured LLM pr
 with optional detailed change tracking for user review.
 """
 
+from __future__ import annotations
+
 import asyncio
 import time
 import json

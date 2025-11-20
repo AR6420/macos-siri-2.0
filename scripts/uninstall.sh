@@ -6,7 +6,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_NAME="VoiceAssistant"
-IDENTIFIER="com.voiceassistant.app"
+IDENTIFIER="com.voiceassistant.macos"
 
 echo "================================================"
 echo "Voice Assistant Uninstaller"

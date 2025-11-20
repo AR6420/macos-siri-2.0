@@ -3,6 +3,8 @@
 # Run this to start the Voice Assistant app
 
 set -e
+set -u
+set -o pipefail
 
 # Colors
 RED='\033[0;31m'
@@ -64,11 +66,38 @@ pkill -f "voice-assistant" 2>/dev/null || true
 poetry run python -m voice_assistant.main > /tmp/voice-assistant.log 2>&1 &
 PYTHON_PID=$!
 
-echo -e "${GREEN}✓ Python service started (PID: $PYTHON_PID)${NC}"
-echo "  Logs: /tmp/voice-assistant.log"
+echo "  Waiting for service to start (PID: $PYTHON_PID)..."
 
-# Wait a moment for service to initialize
-sleep 2
+# Health check: verify service is actually running
+MAX_WAIT=10
+for i in $(seq 1 $MAX_WAIT); do
+    if kill -0 $PYTHON_PID 2>/dev/null; then
+        # Process is running, give it a moment to initialize
+        if [ $i -ge 2 ]; then
+            echo -e "${GREEN}✓ Python service started (PID: $PYTHON_PID)${NC}"
+            echo "  Logs: /tmp/voice-assistant.log"
+            break
+        fi
+    else
+        echo -e "${RED}✗ Python service failed to start${NC}"
+        echo ""
+        echo "Check logs for errors:"
+        echo "  ${BLUE}tail -20 /tmp/voice-assistant.log${NC}"
+        echo ""
+        exit 1
+    fi
+    sleep 1
+done
+
+# Final check
+if ! kill -0 $PYTHON_PID 2>/dev/null; then
+    echo -e "${RED}✗ Python service died during startup${NC}"
+    echo ""
+    echo "Last 20 lines of log:"
+    tail -20 /tmp/voice-assistant.log
+    echo ""
+    exit 1
+fi
 
 # Launch the macOS app
 echo -e "${BLUE}▶ Launching Voice Assistant app...${NC}"

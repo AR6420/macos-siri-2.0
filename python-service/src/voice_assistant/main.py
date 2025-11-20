@@ -201,7 +201,7 @@ async def handle_stdin_commands(assistant) -> None:
         """Read line from stdin (blocking)"""
         try:
             return sys.stdin.readline()
-        except:
+        except Exception:
             return None
 
     while True:

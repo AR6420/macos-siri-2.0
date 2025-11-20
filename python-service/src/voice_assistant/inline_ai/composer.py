@@ -5,6 +5,8 @@ Provides functionality to generate well-written content based on user prompts,
 with optional context awareness for more relevant results.
 """
 
+from __future__ import annotations
+
 import asyncio
 import time
 from typing import Dict, Any

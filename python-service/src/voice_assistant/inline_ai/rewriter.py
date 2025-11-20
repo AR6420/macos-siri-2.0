@@ -5,6 +5,8 @@ Provides functionality to rewrite text in different tones (professional, friendl
 using the configured LLM provider.
 """
 
+from __future__ import annotations
+
 import asyncio
 from enum import Enum
 from typing import Dict, Any
